@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#090d17" />
+  <title>IRON RIFT — Arena Combat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="game-shell" id="gameShell">
+    <canvas id="arena" aria-label="Iron Rift fighting arena"></canvas>
+    <div class="top-vignette"></div>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Iron Rift home"><span class="brand-mark">IR</span><span>IRON <b>RIFT</b><small>UNDERGROUND CIRCUIT</small></span></a>
+      <div class="top-meta"><span class="live-dot"></span> LIVE ARENA <i></i> SECTOR 09</div>
+      <button class="sound-button" id="soundButton" aria-label="Toggle sound">♪ <span>SOUND ON</span></button>
+    </header>
+    <section class="fight-ui" aria-label="Fight status">
+      <div class="fighter-card player-card">
+        <div class="fighter-name"><span class="fighter-index">01 / CHALLENGER</span><strong>KAITO <em>“VOLT”</em></strong></div>
+        <div class="health-track"><div class="health-fill player-health" id="playerHealth"></div><span class="health-glint"></span></div>
+        <div class="meter-track"><div class="meter-fill" id="playerMeter"></div></div>
+      </div>
+      <div class="round-center"><div class="round-label" id="roundLabel">ROUND 01</div><div class="timer" id="timer">60</div><div class="round-pips" id="roundPips"><i class="active"></i><i></i><i></i></div></div>
+      <div class="fighter-card enemy-card">
+        <div class="fighter-name"><span class="fighter-index">02 / CPU RIVAL</span><strong>NYX <em>“PHANTOM”</em></strong></div>
+        <div class="health-track"><div class="health-fill enemy-health" id="enemyHealth"></div></div>
+        <div class="meter-track"><div class="meter-fill enemy-meter" id="enemyMeter"></div></div>
+      </div>
+    </section>
+    <div class="combo-readout" id="comboReadout"><strong id="comboCount">0</strong><span>HIT<br>COMBO</span></div>
+    <div class="stage-label"><span class="stage-line"></span><span>THE FOUNDRY</span><small>FIGHTING DISTRICT // 09</small></div>
+    <div class="round-banner" id="roundBanner"><span>ROUND 01</span><strong>FIGHT!</strong></div>
+    <section class="start-screen" id="startScreen">
+      <div class="start-copy"><span class="eyebrow"><i></i> THE UNDERGROUND CIRCUIT</span><h1>IRON<br><span>RIFT</span><sup>®</sup></h1><p>One arena. No way out.<br><b>Only the relentless remain.</b></p><button class="primary-button" id="startButton"><span>ENTER THE ARENA</span><b>↗</b></button><div class="start-foot"><span>01 — 03</span><i></i><span>NEW CHALLENGER</span></div></div>
+      <div class="hero-stats"><span>FIGHTER PROFILE <b>01</b></span><strong>KAITO <em>“VOLT”</em></strong><div><i>STRIKER</i><i>AGILITY 09</i><i>POWER 08</i></div></div>
+      <div class="start-mark">IR<span>—</span>09</div>
+    </section>
+    <div class="result-screen" id="resultScreen" hidden><span class="eyebrow">THE FOUNDRY // MATCH COMPLETE</span><h2 id="resultTitle">VICTORY</h2><p id="resultText">The circuit remembers.</p><button class="primary-button" id="rematchButton"><span>FIGHT AGAIN</span><b>↗</b></button></div>
+    <div class="control-hint" id="controlHint"><span>← →</span> MOVE <i></i> <span>↑</span> JUMP <i></i> <span>Z X C</span> ATTACK</div>
+    <div class="mobile-controls" id="mobileControls" aria-label="Touch fight controls">
+      <div class="move-pad"><button class="touch-button direction" data-action="left" aria-label="Move left">‹</button><button class="touch-button direction" data-action="right" aria-label="Move right">›</button><button class="touch-button jump" data-action="jump" aria-label="Jump">↑</button></div>
+      <div class="action-pad"><button class="touch-button kick" data-action="kick" aria-label="Kick">KICK<small> X</small></button><button class="touch-button heavy" data-action="heavy" aria-label="Heavy attack">HEAVY<small> C</small></button><button class="touch-button punch" data-action="punch" aria-label="Punch">PUNCH<small> Z</small></button><button class="touch-button guard" data-action="guard" aria-label="Guard">GUARD<small> HOLD</small></button></div>
+    </div>
+    <div class="bottom-caption"><span>NO GLORY WITHOUT A SCAR.</span><span>EST. 2094&nbsp; — &nbsp;IRON RIFT LEAGUE</span></div>
+  </main>
+  <script src="game.js"></script>
+</body>
+</html>
