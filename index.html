@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Turbo Goal — MarioKart Rocket League</title>
+<style>
+*{box-sizing:border-box}html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#07111d;font-family:Impact,'Arial Black',sans-serif}canvas{display:block;width:100%;height:100%}.hud{position:fixed;inset:0;pointer-events:none;color:#fff;text-shadow:0 3px 0 #13213a,0 0 12px #000}.top{position:absolute;left:50%;top:18px;transform:translateX(-50%);text-align:center}.score{display:flex;align-items:center;gap:16px;font-size:44px}.score b{font-size:58px}.blue{color:#55baff}.red{color:#ff5d72}.timer{font-size:20px;letter-spacing:3px;color:#dff5ff}.boost{position:absolute;left:28px;bottom:28px;width:220px}.boost-label{font-size:18px;letter-spacing:2px}.bar{height:18px;border:3px solid #fff;transform:skew(-12deg);background:#18243a;box-shadow:0 4px 12px #000}.fill{height:100%;width:100%;background:linear-gradient(90,#35ecff,#1972ff);box-shadow:0 0 15px #36cfff}.item{position:absolute;right:28px;bottom:24px;width:108px;height:108px;border:5px solid #fff;border-radius:24px;background:linear-gradient(145deg,#ffdf35,#ff6c24);box-shadow:0 8px 0 #7d290e,0 12px 25px #000;text-align:center;display:flex;align-items:center;justify-content:center;font-size:58px}.item-name{position:absolute;right:28px;bottom:138px;font-size:16px;color:#ffe766}.message{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%) scale(.7);font-size:72px;letter-spacing:4px;text-align:center;opacity:0;transition:.25s}.message.show{opacity:1;transform:translate(-50%,-50%) scale(1)}.pause{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:54px;text-align:center;display:none}.controls{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);font:15px Arial,sans-serif;color:#c8dded;opacity:.85}.mobile{display:none}.touch{position:absolute;bottom:18px;width:86px;height:86px;border:2px solid rgba(255,255,255,.65);border-radius:50%;background:rgba(10,20,35,.45);pointer-events:auto;display:none}.touch.left{left:18px}.touch.right{left:112px}.touch.boost{right:18px}.touch.use{right:112px}.touch i{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:34px;font-style:normal}@media(max-width:800px),(pointer:coarse){.controls{display:none}.boost{left:16px;bottom:126px;width:150px}.item{right:16px;bottom:16px;width:82px;height:82px;font-size:44px}.item-name{right:16px;bottom:106px}.touch{display:block}.top{top:8px}.score{font-size:28px}.score b{font-size:38px}.message{font-size:44px}}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud">
+  <div class="top"><div class="score"><span class="blue">BLUE</span><b id="bScore">0</b><span style="color:#fff">—</span><b id="rScore">0</b><span class="red">RED</span></div><div class="timer" id="timer">1:30</div></div>
+  <div class="boost"><div class="boost-label">⚡ BOOST</div><div class="bar"><div class="fill" id="boostFill"></div></div></div>
+  <div class="item-name" id="itemName">SHELL READY</div><div class="item" id="item">🐢</div>
+  <div class="message" id="message">GO!</div><div class="pause" id="pause">PAUSED<br><span style="font-size:20px;font-family:Arial">Press P to continue</span></div>
+  <div class="controls">WASD / ARROWS: Drive • SPACE: Boost • E: Use Item • P: Pause</div>
+  <div class="touch left" data-key="left"><i>←</i></div><div class="touch right" data-key="right"><i>→</i></div><div class="touch boost" data-key="boost"><i>⚡</i></div><div class="touch use" data-key="use"><i>✦</i></div>
+</div>
+<script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+let W,H;function resize(){W=canvas.width=innerWidth*devicePixelRatio;H=canvas.height=innerHeight*devicePixelRatio;canvas.style.width=innerWidth+'px';canvas.style.height=innerHeight+'px'}addEventListener('resize',resize);resize();
+const keys={},touchKeys={};addEventListener('keydown',e=>{let k=e.key.toLowerCase();keys[k]=true;if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','p'].includes(k))e.preventDefault();if(k==='p')paused=!paused;if(k==='e')useItem()});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+document.querySelectorAll('.touch').forEach(el=>{const k=el.dataset.key;el.addEventListener('pointerdown',e=>{e.preventDefault();touchKeys[k]=true;if(k==='use')useItem()});el.addEventListener('pointerup',()=>touchKeys[k]=false);el.addEventListener('pointerleave',()=>touchKeys[k]=false)});
+let paused=false,time=90,blueScore=0,redScore=0,gameOver=false;
+const car={x:0,y:160,z:0,a:Math.PI/2,vx:0,vy:0,boost:100,item:0,itemCooldown:0};
+const items=[{e:'🐢',n:'GREEN SHELL'},{e:'🍄',n:'MUSHROOM'},{e:'⭐',n:'STAR'},{e:'🍌',n:'BANANA'}];
+let particles=[],shells=[],bananas=[],boostLines=[];
+function useItem(){if(car.itemCooldown>0)return;if(car.item===1){car.boost=Math.min(100,car.boost+60)}else if(car.item===2){car.star=5}else if(car.item===3){bananas.push({x:car.x-Math.sin(car.a)*55,y:car.y-Math.cos(car.a)*55,life:12})}else{shells.push({x:car.x+Math.sin(car.a)*55,y:car.y-Math.cos(car.a)*55,a:car.a,v:1.1,life:9})}car.item=Math.floor(Math.random()*4);car.itemCooldown=1.2;updateItem()}
+function updateItem(){let i=items[car.item];document.getElementById('item').textContent=i.e;document.getElementById('itemName').textContent=i.n}
+updateItem();
+function boostBurst(){for(let i=0;i<3;i++)boostLines.push({x:car.x-Math.sin(car.a)*30,y:car.y-Math.cos(car.a)*30,life:.35})}
+function resetBall(){ball.x=0;ball.y=0;ball.vx=(Math.random()<.5?-1:1)*.12;ball.vy=(Math.random()<.5?-1:1)*.06}
+const ball={x:0,y:0,vx:.12,vy:.06,r:26};resetBall();
+function collidesCircle(a,b,r){const dx=a.x-b.x,dy=a.y-b.y;return dx*dx+dy*dy<r*r}
+function goal(side){if(side==='blue')blueScore++;else redScore++;document.getElementById('bScore').textContent=blueScore;document.getElementById('rScore').textContent=redScore;showMessage(side==='blue'?'BLUE GOAL!':'RED GOAL!',1500);resetBall();car.x=0;car.y=160;car.vx=car.vy=0}
+function showMessage(t,d=1000){const m=document.getElementById('message');m.textContent=t;m.classList.add('show');setTimeout(()=>m.classList.remove('show'),d)}showMessage('GO!',900);
+function update(dt){if(paused||gameOver)return;time-=dt;if(time<=0){time=0;gameOver=true;showMessage(blueScore===redScore?'TIED!':blueScore>redScore?'BLUE WINS!':'RED WINS!',5000)}car.itemCooldown-=dt;if(car.star>0)car.star-=dt;
+ const left=keys.arrowleft||keys.a||touchKeys.left,right=keys.arrowright||keys.d||touchKeys.right,up=keys.arrowup||keys.w||touchKeys.up,down=keys.arrowdown||keys.s||touchKeys.down;
+ if(left)car.a+=2.1*dt;if(right)car.a-=2.1*dt;
+ let throttle=(up?1:0)-(down?.55:0);let boosting=(keys[' ']||touchKeys.boost)&&car.boost>0&&throttle>0;if(boosting){car.boost-=32*dt;boostBurst()}else car.boost=Math.min(100,car.boost+8*dt);
+ car.vx+=Math.sin(car.a)*throttle*(boosting?0.95:0.48)*dt*18;car.vy+=Math.cos(car.a)*throttle*(boosting?0.95:0.48)*dt*18;
+ car.vx*=Math.pow(.985,dt*60);car.vy*=Math.pow(.985,dt*60);let speed=Math.hypot(car.vx,car.vy);if(speed>.92){car.vx*=.92/speed;car.vy*=.92/speed}if(car.star>0){car.vx*=1.005;car.vy*=1.005}
+ car.x+=car.vx*dt*60;car.y+=car.vy*dt*60;if(car.x<-520)car.x=-520;if(car.x>520)car.x=520;if(car.y<-300)car.y=-300;if(car.y>300)car.y=300;
+ ball.vx*=.999;ball.vy*=.999;ball.x+=ball.vx*dt*60;ball.y+=ball.vy*dt*60;
+ if(ball.x<-490||ball.x>490){ball.vx=-ball.vx*.88;if(Math.abs(ball.y)<80){goal(ball.x<0?'red':'blue')}}
+ if(ball.y<-320||ball.y>320)ball.vy=-ball.vy*.88;
+ if(collidesCircle(car,ball,48)){let dx=ball.x-car.x,dy=ball.y-car.y,d=Math.hypot(dx,dy)||1;ball.vx=dx/d*.52+car.vx*.25;ball.vy=dy/d*.52+car.vy*.25}
+ shells.forEach(s=>{s.x+=Math.sin(s.a)*s.v*dt*60;s.y+=-Math.cos(s.a)*s.v*dt*60;s.life-=dt;if(Math.abs(s.x)>530||Math.abs(s.y)>330)s.life=0;if(collidesCircle(s,ball,38)){let dx=ball.x-s.x,dy=ball.y-s.y,d=Math.hypot(dx,dy)||1;ball.vx=dx/d*.8;ball.vy=dy/d*.8;s.life=0}});shells=shells.filter(s=>s.life>0);
+ bananas.forEach(b=>{b.life-=dt;if(collidesCircle(b,car,35)){car.vx*=.2;car.vy*=.2;b.life=0}});bananas=bananas.filter(b=>b.life>0);
+ boostLines.forEach(p=>p.life-=dt);boostLines=boostLines.filter(p=>p.life>0);
+ document.getElementById('boostFill').style.width=Math.max(0,car.boost)+'%';let m=Math.ceil(time/60),s=Math.ceil(time%60).toString().padStart(2,'0');document.getElementById('timer').textContent=m+':'+s;document.getElementById('pause').style.display=paused?'block':'none'}
+function project(x,y){let cx=W/2,cy=H*.58,scale=Math.min(W/1250,H/760)*1.12;return{x:cx+x*scale,y:cy+y*scale*.78,scale}}
+function poly(points,fill,stroke){ctx.beginPath();points.forEach((p,i)=>{let q=project(p[0],p[1]);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.closePath();ctx.fillStyle=fill;ctx.fill();if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke()}}
+function draw(){ctx.clearRect(0,0,W,H);let grd=ctx.createLinearGradient(0,0,0,H);grd.addColorStop(0,'#1a67ad');grd.addColorStop(.55,'#a8d8ff');grd.addColorStop(.56,'#31536a');grd.addColorStop(1,'#07111d');ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+ // arena
+ poly([[-620,-360],[620,-360],[620,360],[-620,360]],'#5b9f53');
+ poly([[-520,-300],[520,-300],[520,300],[-520,300]],'#9ecf70','#e8f6ad');
+ // field stripes
+ ctx.save();ctx.globalAlpha=.12;for(let x=-500;x<520;x+=80)poly([[x,-300],[x+40,-300],[x+40,300],[x,300]],'#fff');ctx.restore();
+ poly([[-520,-300],[-520,300],[-620,360],[-620,-360]],'#3474c9');poly([[520,-300],[520,300],[620,360],[620,-360]],'#d94b57');
+ // goal boxes and lines
+ poly([[-520,-82],[ -425,-82],[-425,82],[-520,82]],'rgba(90,180,255,.28)');poly([[520,-82],[425,-82],[425,82],[520,82]],'rgba(255,90,105,.28)');
+ ctx.strokeStyle='rgba(255,255,255,.8)';ctx.lineWidth=6;ctx.beginPath();let c=project(0,0);ctx.arc(c.x,c.y,80*c.scale,0,Math.PI*2);ctx.stroke();
+ // perspective audience walls
+ for(let i=0;i<8;i++){let y=-330+i*95;ctx.fillStyle=i%2?'#d8ebf3':'#edf8ff';ctx.globalAlpha=.38;let l=project(-620,y),r=project(620,y);ctx.fillRect(l.x,l.y, r.x-l.x, 18)}ctx.globalAlpha=1;
+ // items
+ bananas.forEach(b=>{let p=project(b.x,b.y);ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.scale,p.scale);ctx.fillStyle='#ffe42e';ctx.beginPath();ctx.ellipse(0,0,12,7,-.5,0,7);ctx.fill();ctx.restore()});shells.forEach(s=>{let p=project(s.x,s.y);ctx.save();ctx.translate(p.x,p.y);ctx.scale(p.scale,p.scale);ctx.fillStyle='#74bd35';ctx.beginPath();ctx.arc(0,0,14,0,7);ctx.fill();ctx.fillStyle='#f1ffcc';ctx.fillRect(-8,-14,16,4);ctx.restore()});
+ // ball
+ let bp=project(ball.x,ball.y);ctx.save();ctx.translate(bp.x,bp.y);ctx.scale(bp.scale,bp.scale);ctx.fillStyle='#fff';ctx.shadowBlur=18;ctx.shadowColor='#fff';ctx.beginPath();ctx.arc(0,0,ball.r,0,7);ctx.fill();ctx.shadowBlur=0;ctx.strokeStyle='#566b77';ctx.lineWidth=4;for(let i=0;i<5;i++){ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,ball.r,i*1.26,.95+i*1.26);ctx.stroke()}ctx.restore();
+ // car shadow
+ let cp=project(car.x,car.y);ctx.save();ctx.translate(cp.x,cp.y);ctx.rotate(-car.a);ctx.scale(cp.scale,cp.scale);ctx.fillStyle='rgba(0,0,0,.35)';ctx.beginPath();ctx.ellipse(0,12,28,13,0,0,7);ctx.fill();
+ ctx.fillStyle=car.star>0?'#ffe14d':'#1b86ff';ctx.strokeStyle='#e6f6ff';ctx.lineWidth=3;ctx.beginPath();ctx.roundRect(-23,-34,46,68,12);ctx.fill();ctx.stroke();ctx.fillStyle='#bdeaff';ctx.beginPath();ctx.roundRect(-16,-24,32,24,8);ctx.fill();ctx.fillStyle='#111';ctx.fillRect(-28,-20,7,18);ctx.fillRect(21,-20,7,18);ctx.fillRect(-28,18,7,18);ctx.fillRect(21,18,7,18);ctx.fillStyle='#fff';ctx.beginPath();ctx.moveTo(-11,-34);ctx.lineTo(11,-34);ctx.lineTo(18,-26);ctx.lineTo(-18,-26);ctx.closePath();ctx.fill();ctx.restore();
+ requestAnimationFrame(loop)}
+let last=performance.now();function loop(now){let dt=Math.min(.033,(now-last)/1000);last=now;update(dt);draw()}loop(last);
+</script>
+</body>
+</html>
